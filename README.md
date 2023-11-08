@@ -60,7 +60,7 @@ Assuming a file structure like so:
 │   └── input3.nii.gz
 ├── model
 │   ├── fold_0
-│   ├── fold_1
+│   ├── fold_2
 │   │   ├── debug.json
 │   │   ├── model_final_checkpoint.model
 │   │   ├── model_final_checkpoint.model.pkl

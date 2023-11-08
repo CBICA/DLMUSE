@@ -33,7 +33,7 @@ def compute_segmentation(input_path, output_path, model_path, **kwargs):
     # FOR THE PRETRAINED MODEL WITH TASK_ID = 802 AKA DLICV
     # Default values for predict_from_folder parameters
     default_params = {
-        'folds': [1],
+        'folds': [2],
         'save_npz': False,
         'num_threads_preprocessing': 6,
         'num_threads_nifti_save': 6,
