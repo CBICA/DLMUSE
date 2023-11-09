@@ -4,6 +4,7 @@ import shutil
 from pathlib import Path
 import tempfile
 from DLMUSE.compute_muse import compute_segmentation
+from DLMUSE.compute_volumes import compute_rois
 
 def validate_path(parser, arg):
     """Ensure the provided path exists."""
@@ -44,6 +45,9 @@ def main():
 
     input_path, output_path, model_path = args.input, args.output, args.model
 
+    consecutive_roi_index_path = str(Path(__file__).parent) + "/dicts/MUSE_mapping_consecutive_indices.csv"
+    derived_roi_index_path = str(Path(__file__).parent) + "/dicts/MUSE_mapping_derived_rois.csv"
+
     # Create cross-platform temp dir, and child dirs that nnUNet needs
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_input_dir = Path(temp_dir) / "nnUNet_raw_data"
@@ -53,21 +57,23 @@ def main():
         temp_output_dir.mkdir()
 
         copy_and_rename_inputs(input_path, temp_input_dir)
-        compute_segmentation(
-            str(temp_input_dir),
-            str(temp_output_dir),
-            model_path,
-            **kwargs
-        )
-
-       # Move results to the specified output location, including only .nii.gz files
-        for file in temp_output_dir.iterdir():
+        compute_segmentation(str(temp_input_dir),str(temp_output_dir),model_path,**kwargs)
+        files = temp_output_dir.iterdir()
+        for file in files:
             if file.suffixes == ['.nii', '.gz']:
-                shutil.move(str(file), output_path)
-        print()
-        print()
-        print()
-        print(f"Prediction complete. Results saved to {output_path}")
+                compute_rois(str(file), consecutive_roi_index_path, derived_roi_index_path)  
+                
+        files = temp_output_dir.iterdir()
+        for file in files:
+            if file.suffixes == ['.nii', '.gz']:
+                shutil.move(str(file).replace("_DLMUSE", ""), output_path)
+            if file.suffix == '.csv':
+                shutil.move(str(file), output_path.replace(".nii.gz", ".csv"))
+
+    print()
+    print()
+    print()
+    print(f"Prediction complete. Results saved to {output_path}")
 
 if __name__ == "__main__":
     main()
