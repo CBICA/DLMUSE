@@ -3,7 +3,7 @@ FROM python:3.8-slim
 
 LABEL IMAGE="DLMUSE"
 
-RUN mkdir /DLMUSE/  && pip install DLMUSE==0.0.0
+RUN mkdir /DLMUSE/  && pip install DLMUSE==0.0.1
 
 # Download the model zip file
 ADD https://github.com/CBICA/DLMUSE/releases/download/v0.0.0/model.zip /DLMUSE/

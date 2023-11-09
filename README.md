@@ -24,12 +24,12 @@ pip install .
 ### Using docker
 
 ```bash
-docker pull aidinisg/dlmuse:0.0.0
+docker pull aidinisg/dlmuse:0.0.1
 ```
 
 ## Usage
 
-A pre-trained nnUNet model can be found in the [DLMUSE-0.0.0 release](https://github.com/CBICA/DLMUSE/releases/tag/v0.0.0) as an [artifact](https://github.com/CBICA/DLMUSE/releases/download/v0.0.0/model.zip). Feel free to use it under the package's [license](LICENSE).
+A pre-trained nnUNet model can be found in the [DLMUSE-0.0.1 release](https://github.com/CBICA/DLMUSE/releases/tag/v0.0.1) as an [artifact](https://github.com/CBICA/DLMUSE/releases/download/v0.0.1/model.zip). Feel free to use it under the package's [license](LICENSE).
 
 ### Import as a python package
 
@@ -85,7 +85,7 @@ Without providing a model:
 ```bash
 docker run --gpus all -it --rm -v /path/to/local/input:/workspace/input \
                                -v /path/to/local/output:/workspace/output \
-                               aidinisg/dlmuse:0.0.0  -i input/ -o output/
+                               aidinisg/dlmuse:0.0.1  -i input/ -o output/
 ```
 
 Providing a model:
@@ -94,7 +94,7 @@ Providing a model:
 docker run --gpus all -it --rm -v /path/to/local/model:/workspace/model \
                                -v /path/to/local/input:/workspace/input \
                                -v /path/to/local/output:/workspace/output \
-                               aidinisg/dlmuse:0.0.0  -i input/ -o output/  --model model/
+                               aidinisg/dlmuse:0.0.1  -i input/ -o output/  --model model/
 ```
 
 ## Contact
