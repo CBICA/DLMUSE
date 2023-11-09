@@ -60,5 +60,5 @@ setup(
                     'nnU-Net',
                     'nnunet'
                 ], 
-    package_data={"DLMUSE": ["VERSION","dicts"]},
+    package_data={"DLMUSE": ["VERSION","dicts/*"]},
 )
