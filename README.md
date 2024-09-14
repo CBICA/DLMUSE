@@ -20,7 +20,7 @@ cd DLMUSE
 pip install -e .
 ```
 
-### Using docker
+### Using docker(OUTDATED)
 
 ```bash
 docker pull aidinisg/dlmuse:0.0.1
@@ -28,14 +28,14 @@ docker pull aidinisg/dlmuse:0.0.1
 
 ## Usage
 
-A pre-trained nnUNet model can be found in the [DLMUSE-0.0.1 release](https://github.com/CBICA/DLMUSE/releases/tag/v0.0.1) as an [artifact](https://github.com/CBICA/DLMUSE/releases/download/v0.0.1/model.zip). Feel free to use it under the package's [license](LICENSE).
+A pre-trained nnUNet model can be found in the [DLMUSEV2-1.0.0 release](https://github.com/CBICA/DLMUSE/releases/tag/v1.0.0). Feel free to use it under the package's [license](LICENSE).
 
 ### From command line
 ```bash
 DLMUSE -i "image_folder" -o "path to output folder" -m "path to model weights" -f 0 -tr nnUNetTrainer -c 3d_fullres -p nnUNetPlans -d "id" -device cuda/cpu/mps
 ```
 
-### Using the docker container
+### Using the docker container(OUTDATED)
 
 In the [docker container](https://hub.docker.com/repository/docker/aidinisg/dlmuse/general), the default model is included, but you can also provide your own.
 
