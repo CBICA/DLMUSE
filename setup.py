@@ -1,8 +1,7 @@
 """Setup tool for DLMUSE."""
 
-import io
-import os
 from pathlib import Path
+
 from setuptools import find_packages, setup
 
 this_directory = Path(__file__).parent
@@ -21,31 +20,26 @@ setup(
     download_url="https://github.com/CBICA/DLICV/",
     url="https://github.com/CBICA/DLICV/",
     packages=find_packages(exclude=["tests", ".github"]),
-    install_requires=[
-        "torch",
-        "pathlib",
-        "argparse",
-        "nnunetv2"
-    ],
+    install_requires=["torch", "pathlib", "argparse", "nnunetv2"],
     entry_points={"console_scripts": ["DLMUSE = src.__main__:main"]},
     classifiers=[
-                    "Intended Audience :: Developers",
-                    "Intended Audience :: Science/Research",
-                    "Intended Audience :: Healthcare Industry",
-                    "Programming Language :: Python :: 3",
-                    "Topic :: Scientific/Engineering :: Artificial Intelligence",
-                    "Topic :: Scientific/Engineering :: Image Processing",
-                    "Topic :: Scientific/Engineering :: Medical Science Apps.",
-                ],
+        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
+        "Intended Audience :: Healthcare Industry",
+        "Programming Language :: Python :: 3",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "Topic :: Scientific/Engineering :: Image Processing",
+        "Topic :: Scientific/Engineering :: Medical Science Apps.",
+    ],
     license="By installing/using DeepMRSeg, the user agrees to the following license: See https://www.med.upenn.edu/cbica/software-agreement-non-commercial.html",
-    keywords = [
-                    'deep learning',
-                    'image segmentation',
-                    'semantic segmentation',
-                    'medical image analysis',
-                    'medical image segmentation',
-                    'nnU-Net',
-                    'nnunet'
-                ],
+    keywords=[
+        "deep learning",
+        "image segmentation",
+        "semantic segmentation",
+        "medical image analysis",
+        "medical image segmentation",
+        "nnU-Net",
+        "nnunet",
+    ],
     package_data={"DLMUSE": ["VERSION"]},
 )
