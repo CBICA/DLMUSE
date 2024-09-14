@@ -183,3 +183,6 @@ Temporary Items
 *.nii.gz
 temp/
 .vscode
+
+# Prevent nnunet_results from going into production
+nnunet_results/

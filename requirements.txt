@@ -1,2 +1,4 @@
-nnunet>=1.7.0
-torch>2.0,<2.1
+torch==2.2.1
+nnunetv2
+argparse
+pathlib
