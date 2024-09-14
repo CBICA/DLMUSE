@@ -5,7 +5,6 @@ import shutil
 import warnings
 
 import torch
-from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
 
 from .utils import prepare_data_folder, rename_and_copy_files
 
@@ -15,6 +14,8 @@ warnings.simplefilter(action="ignore", category=UserWarning)
 os.environ["nnUNet_raw"] = "/nnunet_raw"
 os.environ["nnUNet_preprocessed"] = "/nnunet_preprocessed"
 os.environ["nnUNet_results"] = "/nnunet_results"
+
+from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
 
 
 def main() -> None:
@@ -186,6 +187,7 @@ def main() -> None:
     # data conversion
     src_folder = args.i
     des_folder = args.o
+
     prepare_data_folder(des_folder)
     rename_dic, rename_back_dict = rename_and_copy_files(src_folder, des_folder)
 
