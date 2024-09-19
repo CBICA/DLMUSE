@@ -7,6 +7,10 @@ from setuptools import find_packages, setup
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
+
+
 setup(
     name="DLMUSE",
     version="1.0.0",
@@ -15,12 +19,13 @@ setup(
     long_description_content_type="text/markdown",
     author="Ashish Singh, Guray Erus, Vishnu Bashyam, George Aidinis",
     author_email="software@cbica.upenn.edu",
-    maintainer="George Aidinis, Spiros Maggioros",
-    maintainer_email="aidinisg@pennmedicine.upenn.edu, Spiros.Maggioros@pennmedicine.upenn.edu",
-    download_url="https://github.com/CBICA/DLICV/",
-    url="https://github.com/CBICA/DLICV/",
+    maintainer="George Aidinis, Spiros Maggioros, Kyunglok Baik",
+    maintainer_email="aidinisg@pennmedicine.upenn.edu, Spiros.Maggioros@pennmedicine.upenn.edu, kyunglok.baik@pennmedicine.upenn.edu",
+    download_url="https://github.com/CBICA/DLMUSE/",
+    url="https://github.com/CBICA/DLMUSE/",
     packages=find_packages(exclude=["tests", ".github"]),
-    install_requires=["torch", "pathlib", "argparse", "nnunetv2"],
+    python_requires=">=3.8",
+    install_requires=required,
     entry_points={"console_scripts": ["DLMUSE = src.__main__:main"]},
     classifiers=[
         "Intended Audience :: Developers",
@@ -31,7 +36,7 @@ setup(
         "Topic :: Scientific/Engineering :: Image Processing",
         "Topic :: Scientific/Engineering :: Medical Science Apps.",
     ],
-    license="By installing/using DeepMRSeg, the user agrees to the following license: See https://www.med.upenn.edu/cbica/software-agreement-non-commercial.html",
+    license="By installing/using DLMUSE, the user agrees to the following license: See https://www.med.upenn.edu/cbica/software-agreement-non-commercial.html",
     keywords=[
         "deep learning",
         "image segmentation",
@@ -41,5 +46,7 @@ setup(
         "nnU-Net",
         "nnunet",
     ],
-    package_data={"DLMUSE": ["VERSION"]},
+    package_data={
+        "DLMUSE": ["VERSION"]
+    },
 )
