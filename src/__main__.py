@@ -70,14 +70,22 @@ def main() -> None:
         help="nnU-Net configuration that should be used for prediction. Config must be located "
         "in the plans specified with -p",
     )
+    # parser.add_argument(
+    #     "-f",
+    #     nargs="+",
+    #     type=str,
+    #     required=False,
+    #     default=(0),
+    #     help="Specify the folds of the trained model that should be used for prediction. "
+    #     "Default: (0)",
+    # )
     parser.add_argument(
         "-f",
-        nargs="+",
-        type=str,
+        type=int,
         required=False,
-        default=(0),
+        default=0,
         help="Specify the folds of the trained model that should be used for prediction. "
-        "Default: (0)",
+        "Default: 0",
     )
     parser.add_argument(
         "-step_size",
@@ -85,7 +93,8 @@ def main() -> None:
         required=False,
         default=0.5,
         help="Step size for sliding window prediction. The larger it is the faster but less accurate "
-        "the prediction. Default: 0.5. Cannot be larger than 1. We recommend the default.",
+        "the prediction. Default: 0.5. Cannot be larger than 1. We recommend the default."
+        "Default: 0.5",
     )
     parser.add_argument(
         "--disable_tta",
@@ -179,7 +188,7 @@ def main() -> None:
     )
 
     args = parser.parse_args()
-    args.f = [i if i == "all" else int(i) for i in args.f]
+    #args.f = [i if i == "all" else int(i) for i in args.f]
 
     # data conversion
     src_folder = args.i  # input folder
