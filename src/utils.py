@@ -36,6 +36,6 @@ def rename_and_copy_files(src_folder: str, des_folder: str) -> Tuple[dict, dict]
         new_name = os.path.join(des_folder, rename_file)
         shutil.copy2(old_name, new_name)
         rename_dict[filename] = rename_file
-        rename_back_dict[rename_back] = filename
+        rename_back_dict[rename_back] = "DLMUSE_mask_" + filename
 
     return rename_dict, rename_back_dict

@@ -189,6 +189,7 @@ def main() -> None:
 
     args = parser.parse_args()
     #args.f = [i if i == "all" else int(i) for i in args.f]
+    args.f = [args.f]
 
     # data conversion
     src_folder = args.i  # input folder
@@ -220,9 +221,9 @@ def main() -> None:
         sys.exit()
 
     model_folder = os.path.join(
-        args.m,
-        "Dataset%s_Task%s_DLMUSEV2/nnUNetTrainer__nnUNetPlans__3d_fullres/"
-        % (args.d, args.d),
+        "nnunet_results",
+        "Dataset%s_Task%s_DLMUSEV2/nnUNetTrainer__nnUNetPlans__%s/"
+        % (args.d, args.d, args.c),
     )
 
     # Check if model exists. If not exist, download using HuggingFace
@@ -306,6 +307,8 @@ def main() -> None:
     )
 
     # After prediction, convert the image name back to original
+    files_folder = args.o
+
     for filename in os.listdir(files_folder):
         if filename.endswith(".nii.gz"):
             original_name = rename_back_dict[filename]
@@ -313,9 +316,10 @@ def main() -> None:
                 os.path.join(files_folder, filename),
                 os.path.join(files_folder, original_name),
             )
-
+    # Remove the (temporary) des_folder directory
     if os.path.exists(des_folder):
         shutil.rmtree(des_folder)
+
     print("Inference Process Done!")
 
 
