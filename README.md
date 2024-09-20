@@ -20,40 +20,13 @@ cd DLMUSE
 pip install -e .
 ```
 
-### Using docker(OUTDATED)
-
-```bash
-docker pull aidinisg/dlmuse:0.0.1
-```
-
 ## Usage
 
-A pre-trained nnUNet model can be found in the [DLMUSEV2-1.0.0 release](https://github.com/CBICA/DLMUSE/releases/tag/v1.0.0). Feel free to use it under the package's [license](LICENSE).
+A pre-trained nnUNet model can be found at our [hugging face account](https://huggingface.co/nichart/DLMUSE/tree/main) or at the [DLMUSEV2-1.0.0 release](https://github.com/CBICA/DLMUSE/releases/tag/v1.0.0). Feel free to use it under the package's [license](LICENSE).
 
 ### From command line
 ```bash
-DLMUSE -i "image_folder" -o "path to output folder" -m "path to model weights" -f 0 -tr nnUNetTrainer -c 3d_fullres -p nnUNetPlans -d "id" -device cuda/cpu/mps
-```
-
-### Using the docker container(OUTDATED)
-
-In the [docker container](https://hub.docker.com/repository/docker/aidinisg/dlmuse/general), the default model is included, but you can also provide your own.
-
-Without providing a model:
-
-```bash
-docker run --gpus all -it --rm -v /path/to/local/input:/workspace/input \
-                               -v /path/to/local/output:/workspace/output \
-                               aidinisg/dlmuse:0.0.1  -i input/ -o output/
-```
-
-Providing a model:
-
-```bash
-docker run --gpus all -it --rm -v /path/to/local/model:/workspace/model \
-                               -v /path/to/local/input:/workspace/input \
-                               -v /path/to/local/output:/workspace/output \
-                               aidinisg/dlmuse:0.0.1  -i input/ -o output/  --model model/
+DLMUSE -i "image_folder" -o "path to output folder" -device cuda/mps/cpu
 ```
 
 ## Contact

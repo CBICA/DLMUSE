@@ -1,8 +1,8 @@
 import argparse
 import json
 import os
-import sys
 import shutil
+import sys
 import warnings
 
 import torch
@@ -188,24 +188,16 @@ def main() -> None:
     )
 
     args = parser.parse_args()
-    #args.f = [i if i == "all" else int(i) for i in args.f]
     args.f = [args.f]
 
     # data conversion
     src_folder = args.i  # input folder
-    #des_folder = args.o
+
+    # des_folder = args.o
     if not os.path.exists(args.o):  # create output folder if it does not exist
         os.makedirs(args.o)
 
     des_folder = os.path.join(args.o, "renamed_image")
-
-    # prepare_data_folder(des_folder)
-    # rename_dic, rename_back_dict = rename_and_copy_files(src_folder, des_folder)
-
-    # datalist_file = os.path.join(des_folder, "renaming.json")
-    # with open(datalist_file, "w", encoding="utf-8") as f:
-    #     json.dump(rename_dic, f, ensure_ascii=False, indent=4)
-    # print(f"Renaming dic is saved to {datalist_file}")
 
     # check if -i argument is a folder, list (csv), or a single file (nii.gz)
     if os.path.isdir(args.i):  # if args.i is a directory
@@ -265,7 +257,6 @@ def main() -> None:
     else:
         device = torch.device("mps")
         print("Running in MPS mode.")
-
 
     # exports for nnunetv2 purposes
     os.environ["nnUNet_raw"] = "/nnunet_raw/"
