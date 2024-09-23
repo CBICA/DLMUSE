@@ -226,6 +226,8 @@ def main() -> None:
         from huggingface_hub import snapshot_download
 
         snapshot_download(repo_id="nichart/DLMUSE", local_dir=".")
+        os.system("mv nnunet_results src/")
+
         print("DLICV model has been successfully downloaded!")
     else:
         print("Loading the model...")
