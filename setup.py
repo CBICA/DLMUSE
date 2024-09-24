@@ -13,14 +13,14 @@ with open('requirements.txt') as f:
 
 setup(
     name="DLMUSE",
-    version="1.0.0",
+    version="1.0.1",
     description="DLMUSE - Deep Learning MUlti-atlas region Segmentation utilizing Ensembles of registration algorithms and parameters",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    author="Ashish Singh, Guray Erus, Vishnu Bashyam, George Aidinis",
+    author="Ashish Singh, Guray Erus, Vishnu Bashyam, George Aidinis, Kyunglok Baik, Alexander Getka",
     author_email="software@cbica.upenn.edu",
-    maintainer="George Aidinis, Spiros Maggioros, Kyunglok Baik",
-    maintainer_email="aidinisg@pennmedicine.upenn.edu, Spiros.Maggioros@pennmedicine.upenn.edu, kyunglok.baik@pennmedicine.upenn.edu",
+    maintainer="George Aidinis, Spiros Maggioros, Kyunglok Baik, Alexander Getka",
+    maintainer_email="aidinisg@pennmedicine.upenn.edu, Spiros.Maggioros@pennmedicine.upenn.edu, kyunglok.baik@pennmedicine.upenn.edu, alexander.getka@pennmedicine.upenn.edu",
     download_url="https://github.com/CBICA/DLMUSE/",
     url="https://github.com/CBICA/DLMUSE/",
     packages=find_packages(exclude=["tests", ".github"]),
