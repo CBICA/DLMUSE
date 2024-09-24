@@ -26,7 +26,7 @@ setup(
     packages=find_packages(exclude=["tests", ".github"]),
     python_requires=">=3.8",
     install_requires=required,
-    entry_points={"console_scripts": ["DLMUSE = src.__main__:main"]},
+    entry_points={"console_scripts": ["DLMUSE = DLMUSE.__main__:main"]},
     classifiers=[
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",

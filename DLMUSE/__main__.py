@@ -221,6 +221,7 @@ def main() -> None:
     )
 
     # Check if model exists. If not exist, download using HuggingFace
+    print(f"Using model folder: {model_folder}")
     if not os.path.exists(model_folder):
         # HF download model
         print("DLMUSE model not found, downloading...")
@@ -228,7 +229,6 @@ def main() -> None:
         from huggingface_hub import snapshot_download
         local_src = Path(__file__).parent
         snapshot_download(repo_id="nichart/DLMUSE", local_dir=local_src)
-        os.system("mv nnunet_results src/")
 
         print("DLMUSE model has been successfully downloaded!")
     else:
