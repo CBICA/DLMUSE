@@ -24,14 +24,14 @@ def main() -> None:
     parser.add_argument(
         "-i",
         type=str,
-        required=True,
+        required=False,
         help="[Required] Input folder. Remember to use the correct channel numberings for your files (_0000 etc). "
         "File endings must be the same as the training dataset!",
     )
     parser.add_argument(
         "-o",
         type=str,
-        required=True,
+        required=False,
         help="[Required] Output folder. If it does not exist it will be created. Predicted segmentations will "
         "have the same name as their source images.",
     )
@@ -187,9 +187,33 @@ def main() -> None:
         help="Set this flag to disable progress bar. Recommended for HPC environments (non interactive "
         "jobs)",
     )
+    parser.add_argument(
+        "--clear_cache",
+        action="store_true",
+        required=False,
+        default=False,
+        help="Set this flag to clear any cached models before running. This is recommended if a previous download failed."
+    )
+
 
     args = parser.parse_args()
     args.f = [args.f]
+
+    if args.clear_cache:
+        shutil.rmtree(os.path.join(
+            Path(__file__).parent,
+            "nnunet_results"
+        ))
+        shutil.rmtree(os.path.join(
+            Path(__file__).parent,
+            ".cache"
+        ))
+        if not args.input or not args.output:
+            print("Cache cleared and missing either -i / -o. Exiting.")
+            sys.exit(0)
+
+    if not args.input or not args.output:
+        parser.error("The following arguments are required: -i, -o")
 
     # data conversion
     src_folder = args.i  # input folder
@@ -219,6 +243,8 @@ def main() -> None:
         "Dataset%s_Task%s_DLMUSEV2/nnUNetTrainer__nnUNetPlans__%s/"
         % (args.d, args.d, args.c),
     )
+
+
 
     # Check if model exists. If not exist, download using HuggingFace
     print(f"Using model folder: {model_folder}")
