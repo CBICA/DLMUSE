@@ -13,103 +13,67 @@ from .utils import prepare_data_folder, rename_and_copy_files
 warnings.simplefilter(action="ignore", category=FutureWarning)
 warnings.simplefilter(action="ignore", category=UserWarning)
 
+VERSION = 1.0
 
 def main() -> None:
+    prog="DLMUSE"
     parser = argparse.ArgumentParser(
-        description="Use this to run inference with nnU-Net. This function is used when "
-        "you want to manually specify a folder containing a trained nnU-Net "
-        "model. This is useful when the nnunet environment variables "
-        "(nnUNet_results) are not set."
+        prog=prog,
+        description="DLMUSE - MUlti-atlas region Segmentation utilizing Ensembles of registration algorithms and parameters.",
+        usage="""
+        DLMUSE v{VERSION}
+        Segmentation of the brain into MUSE ROIs from the Nifti image (.nii.gz) of the LPS oriented Intra Cranial Volume (ICV - see DLICV method).
+        
+        Required arguments:
+            [-i, --in_dir]   The filepath of the input directory
+            [-o, --out_dir]  The filepath of the output directory
+        Optional arguments:
+            [-device]        cpu|cuda|mps - Depending on your system configuration (default: cuda)
+            [-h, --help]    Show this help message and exit.
+            [-V, --version] Show program's version number and exit.
+        EXAMPLE USAGE:
+            DLMUSE -i       /path/to/input     \
+                   -o       /path/to/output    \
+                   -device  cpu|cuda|mps
+
+        """.format(VERSION=VERSION),
+        add_help=False
     )
+
+    # Required Arguments
     parser.add_argument(
         "-i",
         type=str,
-        required=False,
-        help="[Required] Input folder. Remember to use the correct channel numberings for your files (_0000 etc). "
-        "File endings must be the same as the training dataset!",
+        required=True,
+        help="[REQUIRED] Input folder with LPS oriented T1 sMRI Intra Cranial Volumes (ICV) in Nifti format (nii.gz).",
     )
     parser.add_argument(
         "-o",
         type=str,
-        required=False,
-        help="[Required] Output folder. If it does not exist it will be created. Predicted segmentations will "
-        "have the same name as their source images.",
+        required=True,
+        help="[REQUIRED] Output folder for the segmentation results in Nifti format (nii.gz).",
     )
-    # parser.add_argument(
-    #     "-m",
-    #     type=str,
-    #     required=True,
-    #     help="Model folder path. The model folder should be named nnunet_results.",
-    # )
+    
+    # Optional Arguments
     parser.add_argument(
-        "-d",
+        "-device",
         type=str,
+        default="cuda",
         required=False,
-        default="903",
-        help="Dataset with which you would like to predict. You can specify either dataset name or id",
+        help="[Recommended] Use this to set the device the inference should run with. Available options are 'cuda' (GPU), "
+        "'cpu' (CPU) or 'mps' (Apple M-series chips supporting 3D CNN).",
     )
     parser.add_argument(
-        "-p",
-        type=str,
-        required=False,
-        default="nnUNetPlans",
-        help="Plans identifier. Specify the plans in which the desired configuration is located. "
-        "Default: nnUNetPlans",
-    )
-    parser.add_argument(
-        "-tr",
-        type=str,
-        required=False,
-        default="nnUNetTrainer",
-        help="What nnU-Net trainer class was used for training? Default: nnUNetTrainer",
-    )
-    parser.add_argument(
-        "-c",
-        type=str,
-        required=False,
-        default="3d_fullres",
-        help="nnU-Net configuration that should be used for prediction. Config must be located "
-        "in the plans specified with -p",
-    )
-    # parser.add_argument(
-    #     "-f",
-    #     nargs="+",
-    #     type=str,
-    #     required=False,
-    #     default=(0),
-    #     help="Specify the folds of the trained model that should be used for prediction. "
-    #     "Default: (0)",
-    # )
-    parser.add_argument(
-        "-f",
-        type=int,
-        required=False,
-        default=0,
-        help="Specify the folds of the trained model that should be used for prediction. "
-        "Default: 0",
-    )
-    parser.add_argument(
-        "-step_size",
-        type=float,
-        required=False,
-        default=0.5,
-        help="Step size for sliding window prediction. The larger it is the faster but less accurate "
-        "the prediction. Default: 0.5. Cannot be larger than 1. We recommend the default."
-        "Default: 0.5",
-    )
-    parser.add_argument(
-        "--disable_tta",
-        action="store_true",
-        required=False,
-        default=False,
-        help="Set this flag to disable test time data augmentation in the form of mirroring. Faster, "
-        "but less accurate inference. Not recommended.",
+        "-V",
+        "--version",
+        action="version",
+        version=prog + ": v{VERSION}.".format(VERSION=VERSION),
+        help="Show the version and exit.",
     )
     parser.add_argument(
         "--verbose",
         action="store_true",
-        help="Set this if you like being talked to. You will have "
-        "to be a good listener/reader.",
+        help="Provides additional details when set.",
     )
     parser.add_argument(
         "--save_probabilities",
@@ -121,63 +85,6 @@ def main() -> None:
         "--continue_prediction",
         action="store_true",
         help="Continue an aborted previous prediction (will not overwrite existing files)",
-    )
-    parser.add_argument(
-        "-chk",
-        type=str,
-        required=False,
-        default="checkpoint_final.pth",
-        help="Name of the checkpoint you want to use. Default: checkpoint_final.pth",
-    )
-    parser.add_argument(
-        "-npp",
-        type=int,
-        required=False,
-        default=3,
-        help="Number of processes used for preprocessing. More is not always better. Beware of "
-        "out-of-RAM issues. Default: 3",
-    )
-    parser.add_argument(
-        "-nps",
-        type=int,
-        required=False,
-        default=3,
-        help="Number of processes used for segmentation export. More is not always better. Beware of "
-        "out-of-RAM issues. Default: 3",
-    )
-    parser.add_argument(
-        "-prev_stage_predictions",
-        type=str,
-        required=False,
-        default=None,
-        help="Folder containing the predictions of the previous stage. Required for cascaded models.",
-    )
-    parser.add_argument(
-        "-num_parts",
-        type=int,
-        required=False,
-        default=1,
-        help="Number of separate nnUNetv2_predict call that you will be making. Default: 1 (= this one "
-        "call predicts everything)",
-    )
-    parser.add_argument(
-        "-part_id",
-        type=int,
-        required=False,
-        default=0,
-        help="If multiple nnUNetv2_predict exist, which one is this? IDs start with 0 can end with "
-        "num_parts - 1. So when you submit 5 nnUNetv2_predict calls you need to set -num_parts "
-        "5 and use -part_id 0, 1, 2, 3 and 4. Simple, right? Note: You are yourself responsible "
-        "to make these run on separate GPUs! Use CUDA_VISIBLE_DEVICES (google, yo!)",
-    )
-    parser.add_argument(
-        "-device",
-        type=str,
-        default="cuda",
-        required=False,
-        help="Use this to set the device the inference should run with. Available options are 'cuda' "
-        "(GPU), 'cpu' (CPU) and 'mps' (Apple M1/M2). Do NOT use this to set which GPU ID! "
-        "Use CUDA_VISIBLE_DEVICES=X nnUNetv2_predict [...] instead!",
     )
     parser.add_argument(
         "--disable_progress_bar",
@@ -194,6 +101,118 @@ def main() -> None:
         default=False,
         help="Set this flag to clear any cached models before running. This is recommended if a previous download failed."
     )
+    parser.add_argument(
+        "--disable_tta",
+        action="store_true",
+        required=False,
+        default=False,
+        help="[nnUnet Arg] Set this flag to disable test time data augmentation in the form of mirroring. "
+        "Faster, but less accurate inference. Not recommended.",
+    )
+    ### DEPRECIATED ####
+    # parser.add_argument(
+    #     "-m",
+    #     type=str,
+    #     required=True,
+    #     help="Model folder path. The model folder should be named nnunet_results.",
+    # )
+    parser.add_argument(
+        "-d",
+        type=str,
+        required=False,
+        default="903",
+        help="[nnUnet Arg] Dataset with which you would like to predict. You can specify either dataset name or id",
+    )
+    parser.add_argument(
+        "-p",
+        type=str,
+        required=False,
+        default="nnUNetPlans",
+        help="[nnUnet Arg] Plans identifier. Specify the plans in which the desired configuration is located. "
+        "Default: nnUNetPlans",
+    )
+    parser.add_argument(
+        "-tr",
+        type=str,
+        required=False,
+        default="nnUNetTrainer",
+        help="[nnUnet Arg] nnU-Net trainer class used for training. "
+        "Default: nnUNetTrainer",
+    )
+    parser.add_argument(
+        "-c",
+        type=str,
+        required=False,
+        default="3d_fullres",
+        help="[nnUnet Arg] nnU-Net configuration that should be used for prediction. Config must be located "
+        "in the plans specified with -p",
+    )
+    parser.add_argument(
+        "-f",
+        type=int,
+        required=False,
+        default=0,
+        help="[nnUnet Arg] Specify the folds of the trained model that should be used for prediction. "
+        "Default: 0",
+    )
+    parser.add_argument(
+        "-step_size",
+        type=float,
+        required=False,
+        default=0.5,
+        help="[nnUnet Arg] Step size for sliding window prediction. The larger it is the faster "
+        "but less accurate prediction. Default: 0.5. Cannot be larger than 1. We recommend the default. "
+        "Default: 0.5",
+    )
+    parser.add_argument(
+        "-chk",
+        type=str,
+        required=False,
+        default="checkpoint_final.pth",
+        help="[nnUnet Arg] Name of the checkpoint you want to use. Default: checkpoint_final.pth",
+    )
+    parser.add_argument(
+        "-npp",
+        type=int,
+        required=False,
+        default=3,
+        help="[nnUnet Arg] Number of processes used for preprocessing. More is not always better. Beware of "
+        "out-of-RAM issues. Default: 3",
+    )
+    parser.add_argument(
+        "-nps",
+        type=int,
+        required=False,
+        default=3,
+        help="[nnUnet Arg] Number of processes used for segmentation export. More is not always better. Beware of "
+        "out-of-RAM issues. Default: 3",
+    )
+    parser.add_argument(
+        "-prev_stage_predictions",
+        type=str,
+        required=False,
+        default=None,
+        help="[nnUnet Arg] Folder containing the predictions of the previous stage. Required for cascaded models.",
+    )
+    parser.add_argument(
+        "-num_parts",
+        type=int,
+        required=False,
+        default=1,
+        help="[nnUnet Arg] Number of separate nnUNetv2_predict call that you will be making. "
+        "Default: 1 (= this will predict everything with a single call)",
+    )
+    parser.add_argument(
+        "-part_id",
+        type=int,
+        required=False,
+        default=0,
+        help="[nnUnet Arg] If multiple nnUNetv2_predict exist, which one is this? IDs start with 0 "
+        "can end with num_parts - 1. So when you submit 5 nnUNetv2_predict calls you need to set " 
+        "-num_parts 5 and use -part_id 0, 1, 2, 3 and 4. Note: You are yourself responsible to make these run on separate GPUs! "
+        "Use CUDA_VISIBLE_DEVICES.",
+    )
+    
 
 
     args = parser.parse_args()
@@ -208,17 +227,16 @@ def main() -> None:
             Path(__file__).parent,
             ".cache"
         ))
-        if not args.input or not args.output:
+        if not args.i or not args.o:
             print("Cache cleared and missing either -i / -o. Exiting.")
             sys.exit(0)
 
-    if not args.input or not args.output:
+    if not args.i or not args.o:
         parser.error("The following arguments are required: -i, -o")
 
     # data conversion
     src_folder = args.i  # input folder
 
-    # des_folder = args.o
     if not os.path.exists(args.o):  # create output folder if it does not exist
         os.makedirs(args.o)
 
@@ -243,7 +261,6 @@ def main() -> None:
         "Dataset%s_Task%s_DLMUSEV2/nnUNetTrainer__nnUNetPlans__%s/"
         % (args.d, args.d, args.c),
     )
-
 
 
     # Check if model exists. If not exist, download using HuggingFace
@@ -274,7 +291,7 @@ def main() -> None:
 
     if args.device == "cpu":
         import multiprocessing
-
+        # use half of the available threads in the system.
         torch.set_num_threads(multiprocessing.cpu_count() // 2)
         device = torch.device("cpu")
         print("Running in CPU mode.")
