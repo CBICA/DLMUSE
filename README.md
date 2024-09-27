@@ -29,8 +29,20 @@ A pre-trained nnUNet model can be found at our [hugging face account](https://hu
 
 ### From command line
 ```bash
-DLMUSE -i "image_folder" -o "path to output folder" -device cpu
+DLMUSE -i "input_folder" -o "output_folder" -device cpu
 ```
+For more details, please refer to
+
+```bash
+DLMUSE -h
+```
+
+## \[Windows Users\] Troubleshooting model download failures
+Our model download process creates several deep directory structures. If you are on Windows and your model download process fails, it may be due to Windows file path limitations. 
+
+To enable long path support in Windows 10, version 1607, and later, the registry key `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem LongPathsEnabled (Type: REG_DWORD)` must exist and be set to 1.
+
+If this affects you, we recommend re-running DLMUSE with the `--clear_cache` flag set on the first run.
 
 ## Contact
 
