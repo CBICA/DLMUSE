@@ -17,7 +17,7 @@ setup(
     description="DLMUSE - Deep Learning MUlti-atlas region Segmentation utilizing Ensembles of registration algorithms and parameters",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    author="Ashish Singh, Guray Erus, Vishnu Bashyam, George Aidinis, Kyunglok Baik, Alexander Getka",
+    author="Guray Erus, Vishnu Bashyam, George Aidinis, Kyunglok Baik, Alexander Getka",
     author_email="software@cbica.upenn.edu",
     maintainer="George Aidinis, Spiros Maggioros, Kyunglok Baik, Alexander Getka",
     maintainer_email="aidinisg@pennmedicine.upenn.edu, Spiros.Maggioros@pennmedicine.upenn.edu, kyunglok.baik@pennmedicine.upenn.edu, alexander.getka@pennmedicine.upenn.edu",
