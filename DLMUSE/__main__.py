@@ -175,17 +175,17 @@ def main() -> None:
         "-npp",
         type=int,
         required=False,
-        default=3,
+        default=2,
         help="[nnUnet Arg] Number of processes used for preprocessing. More is not always better. Beware of "
-        "out-of-RAM issues. Default: 3",
+        "out-of-RAM issues. Default: 2",
     )
     parser.add_argument(
         "-nps",
         type=int,
         required=False,
-        default=3,
+        default=2,
         help="[nnUnet Arg] Number of processes used for segmentation export. More is not always better. Beware of "
-        "out-of-RAM issues. Default: 3",
+        "out-of-RAM issues. Default: 2",
     )
     parser.add_argument(
         "-prev_stage_predictions",

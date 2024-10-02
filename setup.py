@@ -13,7 +13,7 @@ with open('requirements.txt') as f:
 
 setup(
     name="DLMUSE",
-    version="1.0.2",
+    version="1.0.3",
     description="DLMUSE - Deep Learning MUlti-atlas region Segmentation utilizing Ensembles of registration algorithms and parameters",
     long_description=long_description,
     long_description_content_type="text/markdown",
