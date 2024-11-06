@@ -7,10 +7,6 @@ from setuptools import find_packages, setup
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 
-with open('requirements.txt') as f:
-    required = f.read().splitlines()
-
-
 setup(
     name="DLMUSE",
     version="1.0.3",
@@ -25,7 +21,12 @@ setup(
     url="https://github.com/CBICA/DLMUSE/",
     packages=find_packages(exclude=["tests", ".github"]),
     python_requires=">=3.8",
-    install_requires=required,
+    install_requires=[
+        "torch",
+        "nnunetv2",
+        "argparse",
+        "huggingface_hub"
+    ],
     entry_points={"console_scripts": ["DLMUSE = DLMUSE.__main__:main"]},
     classifiers=[
         "Intended Audience :: Developers",

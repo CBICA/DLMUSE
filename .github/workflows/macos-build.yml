@@ -1,0 +1,32 @@
+name: Macos Build
+
+on:
+  push:
+    branches:
+      - main
+      - spiros-dev
+  pull_request:
+    branches:
+      - main
+      - spiros-dev
+
+jobs:
+  test:
+    runs-on: macos-13
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup python version ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          python3 -m pip install -e .

@@ -1,3 +1,7 @@
+![macos tests](https://github.com/CBICA/DLMUSE/actions/workflows/macos-build.yml/badge.svg)
+![ubuntu tests](https://github.com/CBICA/DLMUSE/actions/workflows/ubuntu-build.yml/badge.svg)
+![PyPI Stable](https://img.shields.io/pypi/v/DLMUSE)
+
 # DLMUSE - Deep Learning MUlti-atlas region Segmentation utilizing Ensembles of registration algorithms and parameters
 
 ## Overview
@@ -21,7 +25,7 @@ pip install -e .
 ```
 
 ### Installing PyTorch
-Depending on your system configuration and supported CUDA version, you may need to follow the [PyTorch Installation Instructions](https://pytorch.org/get-started/locally/). 
+Depending on your system configuration and supported CUDA version, you may need to follow the [PyTorch Installation Instructions](https://pytorch.org/get-started/locally/).
 
 ## Usage
 
@@ -38,7 +42,7 @@ DLMUSE -h
 ```
 
 ## \[Windows Users\] Troubleshooting model download failures
-Our model download process creates several deep directory structures. If you are on Windows and your model download process fails, it may be due to Windows file path limitations. 
+Our model download process creates several deep directory structures. If you are on Windows and your model download process fails, it may be due to Windows file path limitations.
 
 To enable long path support in Windows 10, version 1607, and later, the registry key `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem LongPathsEnabled (Type: REG_DWORD)` must exist and be set to 1.
 
