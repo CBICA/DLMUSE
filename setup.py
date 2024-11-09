@@ -22,7 +22,7 @@ setup(
     packages=find_packages(exclude=["tests", ".github"]),
     python_requires=">=3.8",
     install_requires=[
-        "torch",
+        "torch<=2.3.1",
         "nnunetv2",
         "argparse",
         "huggingface_hub"
