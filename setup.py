@@ -23,7 +23,7 @@ setup(
     python_requires=">=3.8",
     install_requires=[
         "torch<=2.2.1",
-        "nnunetv2",
+        "nnunetv2==2.5.1",
         "argparse",
         "huggingface_hub"
     ],
