@@ -1,5 +1,5 @@
 torch==2.2.1
-nnunetv2==2.5.1
+nnunetv2==2.2.1
 argparse
 huggingface_hub
 pathlib
