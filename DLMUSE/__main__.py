@@ -39,12 +39,14 @@ def main() -> None:
     # Required Arguments
     parser.add_argument(
         "-i",
+        "--in_dir",
         type=str,
         required=True,
         help="[REQUIRED] Input folder with LPS oriented T1 sMRI Intra Cranial Volumes (ICV) in Nifti format (nii.gz).",
     )
     parser.add_argument(
         "-o",
+        "--out_dir",
         type=str,
         required=True,
         help="[REQUIRED] Output folder for the segmentation results in Nifti format (nii.gz).",
@@ -217,6 +219,7 @@ def main() -> None:
         args.device,
         args.clear_cache,
         args.d,
+        args.c,
         args.part_id,
         args.num_parts,
         args.step_size,

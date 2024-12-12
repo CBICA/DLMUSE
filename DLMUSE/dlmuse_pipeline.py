@@ -15,7 +15,8 @@ def run_pipeline(
     out_dir: str,
     device: str,
     clear_cache: bool = False,
-    d: str = "901",
+    d: str = "903",
+    c: str = "3d_fullres",
     part_id: int = 0,
     num_parts: int = 1,
     step_size: float = 0.5,
@@ -75,7 +76,7 @@ def run_pipeline(
     model_folder = os.path.join(
         Path(__file__).parent,
         "nnunet_results",
-        "Dataset%s_Task%s_dlicv/nnUNetTrainer__nnUNetPlans__3d_fullres/" % (d, d),
+        "Dataset%s_Task%s_DLMUSEV2/nnUNetTrainer__nnUNetPlans__%s/" % (d, d, c),
     )
 
     if clear_cache:
@@ -90,15 +91,16 @@ def run_pipeline(
         from huggingface_hub import snapshot_download
 
         local_src = Path(__file__).parent
-        snapshot_download(repo_id="nichart/DLICV", local_dir=local_src)
-        print("DLICV model has been successfully downloaded!")
+        snapshot_download(repo_id="nichart/DLMUSE", local_dir=local_src)
+        print("DLMUSE model has been successfully downloaded!")
     else:
         print("Loading the model...")
 
     prepare_data_folder(out_dir)
 
-    # Check for invalid arguments - advise users to see nnUNetv2 documentation
-    assert part_id < num_parts, "See nnUNetv2_predict -h."
+    assert (
+        part_id < num_parts
+    ), "part_id < num_parts. Please see nnUNetv2_predict -h."
 
     assert device in [
         "cpu",
