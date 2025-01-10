@@ -25,17 +25,27 @@ def rename_and_copy_files(src_folder: str, des_folder: str) -> Tuple[dict, dict]
          rename_back_dict:  a dictionary will be use to mapping backto the original name
 
     """
+    if not os.path.exists(src_folder):
+       raise FileNotFoundError(f"Source folder '{src_folder}' does not exist.")
+    if not os.path.exists(des_folder):
+        raise FileNotFoundError(f"Source folder '{des_folder}' does not exist.")
+
     files = os.listdir(src_folder)
     rename_dict = {}
     rename_back_dict = {}
 
     for idx, filename in enumerate(files):
         old_name = os.path.join(src_folder, filename)
+        if not os.path.isfile(old_name): # We only want files!
+            continue
         rename_file = f"case_{idx: 04d}_0000.nii.gz"
         rename_back = f"case_{idx: 04d}.nii.gz"
         new_name = os.path.join(des_folder, rename_file)
-        shutil.copy2(old_name, new_name)
-        rename_dict[filename] = rename_file
-        rename_back_dict[rename_back] = "DLMUSE_mask_" + filename
+        try:
+            shutil.copy2(old_name, new_name)
+            rename_dict[filename] = rename_file
+            rename_back_dict[rename_back] = "DLMUSE_mask_" + filename
+        except Exception as e:
+            print(F"Error copying file '{filename}' to '{new_name}': {e}")
 
     return rename_dict, rename_back_dict

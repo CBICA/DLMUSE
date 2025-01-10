@@ -24,7 +24,7 @@ setup(
     download_url="https://github.com/CBICA/DLMUSE/",
     url="https://github.com/CBICA/DLMUSE/",
     packages=find_packages(exclude=["tests", ".github"]),
-    python_requires=">=3.8",
+    python_requires=">=3.9",
     install_requires=required,
     entry_points={"console_scripts": ["DLMUSE = DLMUSE.__main__:main"]},
     classifiers=[
