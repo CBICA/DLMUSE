@@ -1,7 +1,9 @@
 import argparse
+import pkg_resources
+
 from DLMUSE.dlmuse_pipeline import run_dlmuse_pipeline
 
-VERSION = "1.0.3"
+VERSION = pkg_resources.require("DLMUSE")[0].version
 
 def main() -> None:
     prog="DLMUSE"
