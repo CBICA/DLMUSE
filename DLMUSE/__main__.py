@@ -1,12 +1,14 @@
 import argparse
-import pkg_resources
+
+import pkg_resources  # type: ignore
 
 from DLMUSE.dlmuse_pipeline import run_dlmuse_pipeline
 
 VERSION = pkg_resources.require("DLMUSE")[0].version
 
+
 def main() -> None:
-    prog="DLMUSE"
+    prog = "DLMUSE"
     parser = argparse.ArgumentParser(
         prog=prog,
         description="DLMUSE - MUlti-atlas region Segmentation utilizing Ensembles of registration algorithms and parameters.",
@@ -26,8 +28,10 @@ def main() -> None:
                    -o       /path/to/output    \
                    -device  cpu|cuda|mps
 
-        """.format(VERSION=VERSION),
-        add_help=False
+        """.format(
+            VERSION=VERSION
+        ),
+        add_help=False,
     )
 
     # Required Arguments
@@ -91,7 +95,7 @@ def main() -> None:
         action="store_true",
         required=False,
         default=False,
-        help="Set this flag to clear any cached models before running. This is recommended if a previous download failed."
+        help="Set this flag to clear any cached models before running. This is recommended if a previous download failed.",
     )
     parser.add_argument(
         "--disable_tta",
@@ -101,7 +105,7 @@ def main() -> None:
         help="[nnUnet Arg] Set this flag to disable test time data augmentation in the form of mirroring. "
         "Faster, but less accurate inference. Not recommended.",
     )
-    ### DEPRECIATED ####
+    # DEPRECIATED ##
     # parser.add_argument(
     #     "-m",
     #     type=str,
@@ -227,8 +231,9 @@ def main() -> None:
         args.nps,
         args.prev_stage_predictions,
         args.num_parts,
-        args.part_id
+        args.part_id,
     )
+
 
 if __name__ == "__main__":
     main()

@@ -7,7 +7,7 @@ from setuptools import find_packages, setup
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 
-with open('requirements.txt') as f:
+with open("requirements.txt") as f:
     required = f.read().splitlines()
 
 
@@ -46,7 +46,5 @@ setup(
         "nnU-Net",
         "nnunet",
     ],
-    package_data={
-        "DLMUSE": ["VERSION"]
-    },
+    package_data={"DLMUSE": ["VERSION"]},
 )

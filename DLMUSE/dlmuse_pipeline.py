@@ -1,11 +1,11 @@
-from typing import Optional
-import logging
 import json
+import logging
 import os
-from pathlib import Path
 import shutil
 import sys
 import warnings
+from pathlib import Path
+from typing import Optional
 
 import torch
 
@@ -13,6 +13,7 @@ from DLMUSE.utils import prepare_data_folder, rename_and_copy_files
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 warnings.simplefilter(action="ignore", category=UserWarning)
+
 
 def run_dlmuse_pipeline(
     in_dir: str,
@@ -36,17 +37,11 @@ def run_dlmuse_pipeline(
     prev_stage_predictions: Optional[str] = None,
     num_parts: int = 1,
     part_id: int = 0,
-):
+) -> None:
 
     if clear_cache:
-        shutil.rmtree(os.path.join(
-            Path(__file__).parent,
-            "nnunet_results"
-        ))
-        shutil.rmtree(os.path.join(
-            Path(__file__).parent,
-            ".cache"
-        ))
+        shutil.rmtree(os.path.join(Path(__file__).parent, "nnunet_results"))
+        shutil.rmtree(os.path.join(Path(__file__).parent, ".cache"))
         if not in_dir or not out_dir:
             logging.error("Cache cleared and missing either -i / -o. Exiting.")
             sys.exit(0)
@@ -80,10 +75,8 @@ def run_dlmuse_pipeline(
     model_folder = os.path.join(
         Path(__file__).parent,
         "nnunet_results",
-        "Dataset%s_Task%s_DLMUSEV2/nnUNetTrainer__nnUNetPlans__%s/"
-        % (d, d, c),
+        "Dataset%s_Task%s_DLMUSEV2/nnUNetTrainer__nnUNetPlans__%s/" % (d, d, c),
     )
-
 
     # Check if model exists. If not exist, download using HuggingFace
     logging.info(f"Using model folder: {model_folder}")
@@ -92,6 +85,7 @@ def run_dlmuse_pipeline(
         logging.info("DLMUSE model not found, downloading...")
 
         from huggingface_hub import snapshot_download
+
         local_src = Path(__file__).parent
         snapshot_download(repo_id="nichart/DLMUSE", local_dir=local_src)
 
@@ -101,9 +95,7 @@ def run_dlmuse_pipeline(
 
     prepare_data_folder(des_folder)
 
-    assert (
-        part_id < num_parts
-    ), "part_id < num_parts. Please see nnUNetv2_predict -h."
+    assert part_id < num_parts, "part_id < num_parts. Please see nnUNetv2_predict -h."
 
     assert device in [
         "cpu",
@@ -113,6 +105,7 @@ def run_dlmuse_pipeline(
 
     if device == "cpu":
         import multiprocessing
+
         # use half of the available threads in the system.
         torch.set_num_threads(multiprocessing.cpu_count() // 2)
         device = torch.device("cpu")
@@ -149,9 +142,7 @@ def run_dlmuse_pipeline(
     )
 
     # Retrieve the model and it's weight
-    predictor.initialize_from_trained_model_folder(
-        model_folder, f, checkpoint_name=chk
-    )
+    predictor.initialize_from_trained_model_folder(model_folder, f, checkpoint_name=chk)
 
     # Final prediction
     predictor.predict_from_files(
