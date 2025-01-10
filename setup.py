@@ -7,10 +7,6 @@ from setuptools import find_packages, setup
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 
-with open("requirements.txt") as f:
-    required = f.read().splitlines()
-
-
 setup(
     name="DLMUSE",
     version="1.0.3",
