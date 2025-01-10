@@ -25,7 +25,12 @@ setup(
     url="https://github.com/CBICA/DLMUSE/",
     packages=find_packages(exclude=["tests", ".github"]),
     python_requires=">=3.9",
-    install_requires=required,
+    install_requires=[
+        "torch<=2.3.1",
+        "nnunetv2<=2.5.1",
+        "argparse",
+        "huggingface_hub"
+    ],
     entry_points={"console_scripts": ["DLMUSE = DLMUSE.__main__:main"]},
     classifiers=[
         "Intended Audience :: Developers",
