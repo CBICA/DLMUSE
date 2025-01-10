@@ -1,5 +1,5 @@
 import argparse
-from DLMUSE.dlmuse_pipeline import dlmuse_pipeline
+from DLMUSE.dlmuse_pipeline import run_dlmuse_pipeline
 
 VERSION = "1.0.3"
 
@@ -204,7 +204,7 @@ def main() -> None:
     )
 
     args = parser.parse_args()
-    dlmuse_pipeline(
+    run_dlmuse_pipeline(
         args.in_dir,
         args.out_dir,
         args.device,

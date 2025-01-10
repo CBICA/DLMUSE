@@ -14,7 +14,7 @@ from DLMUSE.utils import prepare_data_folder, rename_and_copy_files
 warnings.simplefilter(action="ignore", category=FutureWarning)
 warnings.simplefilter(action="ignore", category=UserWarning)
 
-def dlmuse_pipeline(
+def run_dlmuse_pipeline(
     in_dir: str,
     out_dir: str,
     device: str,
