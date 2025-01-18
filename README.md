@@ -35,6 +35,13 @@ A pre-trained nnUNet model can be found at our [hugging face account](https://hu
 ```bash
 DLMUSE -i "input_folder" -o "output_folder" -device cpu
 ```
+### In-code usage
+```python
+from DLMUSE import run_dlmuse_pipeline
+...
+run_dlmuse_pipeline(in_dir, out_dir, device)
+```
+
 For more details, please refer to
 
 ```bash
