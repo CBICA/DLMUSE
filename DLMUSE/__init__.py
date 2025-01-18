@@ -1,1 +1,1 @@
-from .dlmuse_pipeline import run_dlmuse_pipeline
+from DLMUSE.dlmuse_pipeline import run_dlmuse_pipeline
