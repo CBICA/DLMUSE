@@ -1,6 +1,10 @@
 import os
 import shutil
 from typing import Tuple
+import random
+
+import numpy as np
+import torch
 
 
 def prepare_data_folder(folder_path: str) -> None:
@@ -49,3 +53,12 @@ def rename_and_copy_files(src_folder: str, des_folder: str) -> Tuple[dict, dict]
             print(f"Error copying file '{filename}' to '{new_name}': {e}")
 
     return rename_dict, rename_back_dict
+
+def set_random_seed(seed):
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False

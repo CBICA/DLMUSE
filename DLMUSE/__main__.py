@@ -3,6 +3,7 @@ import argparse
 import pkg_resources  # type: ignore
 
 from DLMUSE.dlmuse_pipeline import run_dlmuse_pipeline
+from DLMUSE.utils import set_random_seed
 
 VERSION = pkg_resources.require("DLMUSE")[0].version
 
@@ -210,6 +211,10 @@ def main() -> None:
     )
 
     args = parser.parse_args()
+
+    # Set random seed to a fixed value
+    set_random_seed(42)
+
     run_dlmuse_pipeline(
         args.in_dir,
         args.out_dir,
