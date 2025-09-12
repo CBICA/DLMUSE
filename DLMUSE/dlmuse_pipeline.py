@@ -128,6 +128,8 @@ def run_dlmuse_pipeline(
     )
 
     from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
+    # Keep the outputs consistent
+    torch.use_deterministic_algorithms(True)
 
     # Initialize nnUnetPredictor
     predictor = nnUNetPredictor(
