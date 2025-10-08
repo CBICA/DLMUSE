@@ -8,6 +8,8 @@
 
 DLMUSE uses a trained [nnUNet](https://github.com/MIC-DKFZ/nnUNet) model to compute the segmentation of the brain into [MUSE](https://www.med.upenn.edu/cbica/sbia/muse.html) ROIs from the nifti image of the Intra Cranial Volume (ICV - see [DLICV method](https://github.com/CBICA/DLICV)), oriented in _**LPS**_ orientation. It produces the segmented brain, along with a .csv file of the calculated volumes of each ROI.
 
+Plese make sure to use post-skull stripped T1 brain images (.nii.gz) as inputs or use [NiChart_DLMUSE](https://github.com/CBICA/NiChart_DLMUSE) for the full processing pipeline from RAW T1.
+
 ## Installation
 
 ### As a python package
