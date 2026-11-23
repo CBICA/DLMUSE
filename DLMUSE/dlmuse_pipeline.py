@@ -37,6 +37,7 @@ def run_dlmuse_pipeline(
     prev_stage_predictions: Optional[str] = None,
     num_parts: int = 1,
     part_id: int = 0,
+    low_memory: bool = False,
 ) -> None:
 
     if clear_cache:
@@ -128,11 +129,20 @@ def run_dlmuse_pipeline(
     )
 
     from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
+
+    if low_memory:
+        from DLMUSE.predictor import LowMemNNUNetPredictor
+
+        predictor_cls = LowMemNNUNetPredictor
+        logging.info("Low memory mode enabled.")
+    else:
+        predictor_cls = nnUNetPredictor
+
     # Keep the outputs consistent
     torch.use_deterministic_algorithms(True)
 
     # Initialize nnUnetPredictor
-    predictor = nnUNetPredictor(
+    predictor = predictor_cls(
         tile_step_size=step_size,
         use_gaussian=True,
         use_mirroring=not disable_tta,

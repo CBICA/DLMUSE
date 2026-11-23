@@ -1,11 +1,10 @@
 import argparse
-
-import pkg_resources  # type: ignore
+from importlib.metadata import version
 
 from DLMUSE.dlmuse_pipeline import run_dlmuse_pipeline
 from DLMUSE.utils import set_random_seed
 
-VERSION = pkg_resources.require("DLMUSE")[0].version
+VERSION = version("DLMUSE")
 
 
 def main() -> None:
@@ -22,6 +21,7 @@ def main() -> None:
             [-o, --out_dir]  The filepath of the output directory
         Optional arguments:
             [-device]        cpu|cuda|mps - Depending on your system configuration (default: cuda)
+            [--low_memory]   Reduce host RAM usage during inference.
             [-h, --help]    Show this help message and exit.
             [-V, --version] Show program's version number and exit.
         EXAMPLE USAGE:
@@ -97,6 +97,15 @@ def main() -> None:
         required=False,
         default=False,
         help="Set this flag to clear any cached models before running. This is recommended if a previous download failed.",
+    )
+    parser.add_argument(
+        "--low_memory",
+        action="store_true",
+        required=False,
+        default=False,
+        help="Reduce host RAM usage: logits are kept on the device until they are reduced to a label map, "
+        "and segmentations are exported in the main process (no export worker pool). "
+        "Ignored when --save_probabilities is set.",
     )
     parser.add_argument(
         "--disable_tta",
@@ -182,7 +191,7 @@ def main() -> None:
         required=False,
         default=2,
         help="[nnUnet Arg] Number of processes used for segmentation export. More is not always better. Beware of "
-        "out-of-RAM issues. Default: 2",
+        "out-of-RAM issues. Not used with --low_memory. Default: 2",
     )
     parser.add_argument(
         "-prev_stage_predictions",
@@ -237,6 +246,7 @@ def main() -> None:
         args.prev_stage_predictions,
         args.num_parts,
         args.part_id,
+        low_memory=args.low_memory,
     )
 
 

@@ -186,3 +186,5 @@ temp/
 
 # Prevent nnunet_results from going into production
 nnunet_results/
+
+test_files/

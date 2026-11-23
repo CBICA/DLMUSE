@@ -50,6 +50,15 @@ For more details, please refer to
 DLMUSE -h
 ```
 
+### Reducing memory usage
+DLMUSE predicts 152 classes, so nnU-Net's default export path can use a lot of system RAM. If inference runs out of memory, add the `--low_memory` flag:
+
+```bash
+DLMUSE -i "input_folder" -o "output_folder" -device cuda --low_memory
+```
+
+With this flag, the model's raw outputs stay on the device until they are reduced to a label map, and results are written in the main process instead of in export worker processes. It has no effect when `--save_probabilities` is set. The in-code equivalent is `run_dlmuse_pipeline(in_dir, out_dir, device, low_memory=True)`.
+
 ## \[Windows Users\] Troubleshooting model download failures
 Our model download process creates several deep directory structures. If you are on Windows and your model download process fails, it may be due to Windows file path limitations.
 
