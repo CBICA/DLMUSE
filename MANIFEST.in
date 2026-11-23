@@ -1,3 +1,4 @@
 include DLMUSE/VERSION*
 include requirements*
 include DLMUSE/dicts/*
+include DLMUSE/shared/dicts/*.csv

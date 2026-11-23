@@ -21,7 +21,8 @@ setup(
     url="https://github.com/CBICA/DLMUSE/",
     packages=find_packages(exclude=["tests", ".github"]),
     python_requires=">=3.9",
-    install_requires=["torch<=2.3.1", "nnunetv2<=2.5.1", "argparse", "huggingface_hub"],
+    install_requires=["torch<=2.3.1", "nnunetv2<=2.5.1", "huggingface_hub", "nibabel"],
+    package_data={"DLMUSE": ["shared/dicts/*.csv"]},
     entry_points={"console_scripts": ["DLMUSE = DLMUSE.__main__:main"]},
     classifiers=[
         "Intended Audience :: Developers",
@@ -42,5 +43,4 @@ setup(
         "nnU-Net",
         "nnunet",
     ],
-    package_data={"DLMUSE": ["VERSION"]},
 )

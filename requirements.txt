@@ -6,6 +6,5 @@ nnunetv2==2.5.1
 acvl_utils==0.2.5
 blosc2==3.0.0b4
 
-argparse
 huggingface_hub
-pathlib
+nibabel

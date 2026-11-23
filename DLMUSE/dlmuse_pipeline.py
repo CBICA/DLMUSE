@@ -2,17 +2,34 @@ import json
 import logging
 import os
 import shutil
-import sys
 import warnings
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, List, Optional, Union
 
 import torch
 
 from DLMUSE.utils import prepare_data_folder, rename_and_copy_files
 
+# nnU-Net / torch emit a lot of noisy warnings that are irrelevant to end users
 warnings.simplefilter(action="ignore", category=FutureWarning)
 warnings.simplefilter(action="ignore", category=UserWarning)
+
+logger = logging.getLogger(__name__)
+
+PACKAGE_DIR = Path(__file__).parent
+VALID_DEVICES = ("cpu", "cuda", "mps")
+
+
+def _setup_device(device: str) -> torch.device:
+    if device == "cpu":
+        # use half of the available threads in the system
+        torch.set_num_threads(max(1, (os.cpu_count() or 2) // 2))
+    elif device == "cuda":
+        # multithreading in torch doesn't help nnU-Net if run on GPU
+        torch.set_num_threads(1)
+        torch.set_num_interop_threads(1)
+    logger.info(f"Running in {device.upper()} mode.")
+    return torch.device(device)
 
 
 def run_dlmuse_pipeline(
@@ -29,7 +46,7 @@ def run_dlmuse_pipeline(
     p: str = "nnUNetPlans",
     tr: str = "nnUNetTrainer",
     c: str = "3d_fullres",
-    f: list = [0],
+    f: Optional[List[int]] = None,
     step_size: float = 0.5,
     chk: str = "checkpoint_final.pth",
     npp: int = 2,
@@ -38,149 +55,137 @@ def run_dlmuse_pipeline(
     num_parts: int = 1,
     part_id: int = 0,
     low_memory: bool = False,
+    qc: bool = False,
+    qc_thresholds: Union[None, str, Dict[str, Any]] = None,
 ) -> None:
+    """
+    qc_thresholds: optional overrides for the QC thresholds, as a dict or JSON
+    string containing only the keys to change, e.g. {"max_wrong_side": 0.2}.
+    Valid keys: max_wrong_side, midline_tolerance, max_asymmetry, min_pairs,
+    and QC_detail (1 = also write the per-ROI DLMUSE_QC_detail.csv).
+    """
+    folds = [0] if f is None else f
+
+    if qc:
+        from DLMUSE.qc import parse_qc_thresholds
+
+        # Validate QC thresholds up front so a bad value doesn't fail after inference
+        qc_thresholds = parse_qc_thresholds(qc_thresholds)
+
+    # Validate arguments before doing any work
+    if device not in VALID_DEVICES:
+        raise ValueError(f"-device must be one of {VALID_DEVICES}. Got: {device}.")
+    if part_id >= num_parts:
+        raise ValueError(
+            "part_id must be < num_parts. Please see nnUNetv2_predict -h."
+        )
+    if not in_dir or not out_dir:
+        raise ValueError("The following arguments are required: -i, -o")
+    if not os.path.isdir(in_dir):
+        raise FileNotFoundError(f"Input directory not found: {in_dir}")
 
     if clear_cache:
-        shutil.rmtree(os.path.join(Path(__file__).parent, "nnunet_results"))
-        shutil.rmtree(os.path.join(Path(__file__).parent, ".cache"))
-        if not in_dir or not out_dir:
-            logging.error("Cache cleared and missing either -i / -o. Exiting.")
-            sys.exit(0)
+        shutil.rmtree(PACKAGE_DIR / "nnunet_results", ignore_errors=True)
+        shutil.rmtree(PACKAGE_DIR / ".cache", ignore_errors=True)
+        logger.info("Model cache cleared.")
 
-    if not in_dir or not out_dir:
-        logging.error("The following arguments are required: -i, -o")
-        sys.exit(0)
+    os.makedirs(out_dir, exist_ok=True)
 
-    # data conversion
-    src_folder = in_dir  # input folder
-
-    if not os.path.exists(out_dir):  # create output folder if it does not exist
-        logging.info(f"Can't find {out_dir}, creating it...")
-        os.makedirs(out_dir)
-
+    # Copy inputs into a temporary folder using nnU-Net naming conventions
     des_folder = os.path.join(out_dir, "renamed_image")
-
-    # check if -i argument is a folder, list (csv), or a single file (nii.gz)
-    if os.path.isdir(in_dir):  # if in_dir is a directory
-        src_folder = in_dir
-        prepare_data_folder(des_folder)
-        rename_dic, rename_back_dict = rename_and_copy_files(src_folder, des_folder)
-        datalist_file = os.path.join(des_folder, "renaming.json")
-        with open(datalist_file, "w", encoding="utf-8") as _f:
-            json.dump(rename_dic, _f, ensure_ascii=False, indent=4)
-        logging.info(f"Renaming dic is saved to {datalist_file}")
-    else:
-        logging.error("Input directory not found. Exiting DLMUSE.")
-        sys.exit(0)
-
-    model_folder = os.path.join(
-        Path(__file__).parent,
-        "nnunet_results",
-        "Dataset%s_Task%s_DLMUSEV2/nnUNetTrainer__nnUNetPlans__%s/" % (d, d, c),
-    )
-
-    # Check if model exists. If not exist, download using HuggingFace
-    logging.info(f"Using model folder: {model_folder}")
-    if not os.path.exists(model_folder):
-        # HF download model
-        logging.info("DLMUSE model not found, downloading...")
-
-        from huggingface_hub import snapshot_download
-
-        local_src = Path(__file__).parent
-        snapshot_download(repo_id="nichart/DLMUSE", local_dir=local_src)
-
-        logging.info("DLMUSE model has been successfully downloaded!")
-    else:
-        logging.info("Loading the model...")
-
     prepare_data_folder(des_folder)
+    try:
+        rename_dict, rename_back_dict = rename_and_copy_files(in_dir, des_folder)
+        datalist_file = os.path.join(des_folder, "renaming.json")
+        with open(datalist_file, "w", encoding="utf-8") as fp:
+            json.dump(rename_dict, fp, ensure_ascii=False, indent=4)
+        logger.info(f"Renaming dict is saved to {datalist_file}")
 
-    assert part_id < num_parts, "part_id < num_parts. Please see nnUNetv2_predict -h."
+        model_folder = os.path.join(
+            PACKAGE_DIR,
+            "nnunet_results",
+            f"Dataset{d}_Task{d}_DLMUSEV2",
+            f"{tr}__{p}__{c}",
+        )
+        logger.info(f"Using model folder: {model_folder}")
+        if not os.path.exists(model_folder):
+            logger.info("DLMUSE model not found, downloading...")
+            from huggingface_hub import snapshot_download
 
-    assert device in [
-        "cpu",
-        "cuda",
-        "mps",
-    ], f"-device must be either cpu, mps or cuda. Got: {device}."
+            snapshot_download(repo_id="nichart/DLMUSE", local_dir=PACKAGE_DIR)
+            logger.info("DLMUSE model has been successfully downloaded!")
+        else:
+            logger.info("Loading the model...")
 
-    if device == "cpu":
-        import multiprocessing
+        torch_device = _setup_device(device)
 
-        # use half of the available threads in the system.
-        torch.set_num_threads(multiprocessing.cpu_count() // 2)
-        device = torch.device("cpu")
-        logging.info("Running in CPU mode.")
-    elif device == "cuda":
-        # multithreading in torch doesn't help nnU-Net if run on GPU
-        torch.set_num_threads(1)
-        torch.set_num_interop_threads(1)
-        device = torch.device("cuda")
-        logging.info("Running in CUDA mode.")
-    else:
-        device = torch.device("mps")
-        logging.info("Running in MPS mode.")
+        # nnU-Net requires these to be set at import time; the model folder is
+        # passed explicitly, so their values are not otherwise used.
+        os.environ["nnUNet_raw"] = "/nnunet_raw/"
+        os.environ["nnUNet_preprocessed"] = "/nnunet_preprocessed"
+        os.environ["nnUNet_results"] = "/nnunet_results"
 
-    # exports for nnunetv2 purposes
-    os.environ["nnUNet_raw"] = "/nnunet_raw/"
-    os.environ["nnUNet_preprocessed"] = "/nnunet_preprocessed"
-    os.environ["nnUNet_results"] = (
-        "/nnunet_results"  # where model will be located (fetched from HF)
-    )
+        from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
 
-    from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
-
-    if low_memory:
-        from DLMUSE.predictor import LowMemNNUNetPredictor
-
-        predictor_cls = LowMemNNUNetPredictor
-        logging.info("Low memory mode enabled.")
-    else:
         predictor_cls = nnUNetPredictor
+        if low_memory:
+            from DLMUSE.predictor import LowMemNNUNetPredictor
 
-    # Keep the outputs consistent
-    torch.use_deterministic_algorithms(True)
+            predictor_cls = LowMemNNUNetPredictor
+            logger.info("Low memory mode enabled.")
 
-    # Initialize nnUnetPredictor
-    predictor = predictor_cls(
-        tile_step_size=step_size,
-        use_gaussian=True,
-        use_mirroring=not disable_tta,
-        perform_everything_on_device=True,
-        device=device,
-        verbose=verbose,
-        verbose_preprocessing=verbose,
-        allow_tqdm=not disable_progress_bar,
-    )
+        # Keep the outputs consistent
+        torch.use_deterministic_algorithms(True)
 
-    # Retrieve the model and it's weight
-    predictor.initialize_from_trained_model_folder(model_folder, f, checkpoint_name=chk)
+        predictor = predictor_cls(
+            tile_step_size=step_size,
+            use_gaussian=True,
+            use_mirroring=not disable_tta,
+            perform_everything_on_device=True,
+            device=torch_device,
+            verbose=verbose,
+            verbose_preprocessing=verbose,
+            allow_tqdm=not disable_progress_bar,
+        )
+        predictor.initialize_from_trained_model_folder(
+            model_folder, folds, checkpoint_name=chk
+        )
+        predictor.predict_from_files(
+            des_folder,
+            out_dir,
+            save_probabilities=save_probabilities,
+            overwrite=not continue_prediction,
+            num_processes_preprocessing=npp,
+            num_processes_segmentation_export=nps,
+            folder_with_segs_from_prev_stage=prev_stage_predictions,
+            num_parts=num_parts,
+            part_id=part_id,
+        )
 
-    # Final prediction
-    predictor.predict_from_files(
-        des_folder,
-        out_dir,
-        save_probabilities=save_probabilities,
-        overwrite=not continue_prediction,
-        num_processes_preprocessing=npp,
-        num_processes_segmentation_export=nps,
-        folder_with_segs_from_prev_stage=prev_stage_predictions,
-        num_parts=num_parts,
-        part_id=part_id,
-    )
-
-    # After prediction, convert the image name back to original
-    files_folder = out_dir
-
-    for filename in os.listdir(files_folder):
-        if filename.endswith(".nii.gz"):
-            original_name = rename_back_dict[filename]
+        # Convert the output names back to the original names
+        for filename in os.listdir(out_dir):
+            original_name = rename_back_dict.get(filename)
+            if original_name is None:
+                continue
             os.rename(
-                os.path.join(files_folder, filename),
-                os.path.join(files_folder, original_name),
+                os.path.join(out_dir, filename),
+                os.path.join(out_dir, original_name),
             )
-    # Remove the (temporary) des_folder directory
-    if os.path.exists(des_folder):
-        shutil.rmtree(des_folder)
+    finally:
+        shutil.rmtree(des_folder, ignore_errors=True)
 
-    logging.info("Inference Process Done!")
+    logger.info("Inference Process Done!")
+
+    if qc:
+        from DLMUSE.qc import QC_CSV_NAME, run_qc
+
+        # With -num_parts > 1 only this part's outputs exist
+        masks = [
+            os.path.join(out_dir, name)
+            for name in rename_back_dict.values()
+            if os.path.isfile(os.path.join(out_dir, name))
+        ]
+        # QC output goes to <out_dir>/DLMUSE_QC.csv (file|status|issues), not the console
+        if masks:
+            qc_csv = QC_CSV_NAME if num_parts == 1 else f"DLMUSE_QC_part{part_id}.csv"
+            run_qc(masks, os.path.join(out_dir, qc_csv), thresholds=qc_thresholds)

@@ -1,7 +1,14 @@
 import argparse
+import logging
 from importlib.metadata import version
 
 from DLMUSE.dlmuse_pipeline import run_dlmuse_pipeline
+from DLMUSE.qc import (
+    MAX_ASYMMETRY_INDEX,
+    MAX_WRONG_SIDE_FRACTION,
+    MIDLINE_TOLERANCE_MM,
+    MIN_PAIRS_FOR_PLANE_FIT,
+)
 from DLMUSE.utils import set_random_seed
 
 VERSION = version("DLMUSE")
@@ -22,15 +29,26 @@ def main() -> None:
         Optional arguments:
             [-device]        cpu|cuda|mps - Depending on your system configuration (default: cuda)
             [--low_memory]   Reduce host RAM usage during inference.
+            [--qc]           Run L/R hemisphere ROI integrity QC on the outputs (writes DLMUSE_QC.csv: file|status|issues).
+              [--qc_thresholds] JSON dict of only the thresholds to override, e.g. '{{"max_wrong_side": 0.2}}'. Keys:
+                  max_wrong_side    Max fraction of an ROI past the midline before WARN (default: {WS})
+                  midline_tolerance Distance (mm) past the midline that is ignored (default: {TOL})
+                  max_asymmetry     Max L/R volume asymmetry index before WARN (default: {ASYM})
+                  min_pairs         Min bilateral ROI pairs needed to fit the midline plane (default: {MINP})
+                  QC_detail         1 = also write the per-ROI DLMUSE_QC_detail.csv (default: 0)
             [-h, --help]    Show this help message and exit.
             [-V, --version] Show program's version number and exit.
         EXAMPLE USAGE:
-            DLMUSE -i       /path/to/input     \
-                   -o       /path/to/output    \
+            DLMUSE -i       /path/to/input     \\
+                   -o       /path/to/output    \\
                    -device  cpu|cuda|mps
 
         """.format(
-            VERSION=VERSION
+            VERSION=VERSION,
+            WS=MAX_WRONG_SIDE_FRACTION,
+            TOL=MIDLINE_TOLERANCE_MM,
+            ASYM=MAX_ASYMMETRY_INDEX,
+            MINP=MIN_PAIRS_FOR_PLANE_FIT,
         ),
         add_help=False,
     )
@@ -61,10 +79,13 @@ def main() -> None:
         "'cpu' (CPU) or 'mps' (Apple M-series chips supporting 3D CNN).",
     )
     parser.add_argument(
+        "-h", "--help", action="help", help="Show this help message and exit."
+    )
+    parser.add_argument(
         "-V",
         "--version",
         action="version",
-        version=prog + ": v{VERSION}.".format(VERSION=VERSION),
+        version=f"{prog}: v{VERSION}.",
         help="Show the version and exit.",
     )
     parser.add_argument(
@@ -86,42 +107,47 @@ def main() -> None:
     parser.add_argument(
         "--disable_progress_bar",
         action="store_true",
-        required=False,
-        default=False,
         help="Set this flag to disable progress bar. Recommended for HPC environments (non interactive "
         "jobs)",
     )
     parser.add_argument(
         "--clear_cache",
         action="store_true",
-        required=False,
-        default=False,
         help="Set this flag to clear any cached models before running. This is recommended if a previous download failed.",
     )
     parser.add_argument(
         "--low_memory",
         action="store_true",
-        required=False,
-        default=False,
         help="Reduce host RAM usage: logits are kept on the device until they are reduced to a label map, "
         "and segmentations are exported in the main process (no export worker pool). "
         "Ignored when --save_probabilities is set.",
     )
     parser.add_argument(
+        "--qc",
+        action="store_true",
+        help="Run a quality-control step on the output segmentations that checks left/right hemisphere "
+        "ROI integrity (each lateralized MUSE ROI lies in its own hemisphere and has a contralateral "
+        "counterpart). One row per file (file, status, issues) is saved to <out_dir>/DLMUSE_QC.csv "
+        "(nothing is printed to the console).",
+    )
+    parser.add_argument(
+        "--qc_thresholds",
+        type=str,
+        default=None,
+        help="[QC] JSON dict with only the QC thresholds to override, e.g. "
+        '\'{"max_wrong_side": 0.2, "midline_tolerance": 3}\'. Keys: '
+        f"max_wrong_side (max fraction 0-1 of an ROI past the midline before WARN, default {MAX_WRONG_SIDE_FRACTION}); "
+        f"midline_tolerance (mm past the midline that is ignored, default {MIDLINE_TOLERANCE_MM}); "
+        f"max_asymmetry (max L/R volume asymmetry |L-R|/((L+R)/2) before WARN, default {MAX_ASYMMETRY_INDEX}); "
+        f"min_pairs (min bilateral ROI pairs to fit the midline plane, default {MIN_PAIRS_FOR_PLANE_FIT}); "
+        "QC_detail (1 = also write the per-ROI <out_dir>/DLMUSE_QC_detail.csv, default 0).",
+    )
+    parser.add_argument(
         "--disable_tta",
         action="store_true",
-        required=False,
-        default=False,
         help="[nnUnet Arg] Set this flag to disable test time data augmentation in the form of mirroring. "
         "Faster, but less accurate inference. Not recommended.",
     )
-    # DEPRECIATED ##
-    # parser.add_argument(
-    #     "-m",
-    #     type=str,
-    #     required=True,
-    #     help="Model folder path. The model folder should be named nnunet_results.",
-    # )
     parser.add_argument(
         "-d",
         type=str,
@@ -221,32 +247,38 @@ def main() -> None:
 
     args = parser.parse_args()
 
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+    )
+
     # Set random seed to a fixed value
     set_random_seed(42)
 
     run_dlmuse_pipeline(
-        args.in_dir,
-        args.out_dir,
-        args.device,
-        args.verbose,
-        args.save_probabilities,
-        args.continue_prediction,
-        args.disable_progress_bar,
-        args.clear_cache,
-        args.disable_tta,
-        args.d,
-        args.p,
-        args.tr,
-        args.c,
-        [args.f],
-        args.step_size,
-        args.chk,
-        args.npp,
-        args.nps,
-        args.prev_stage_predictions,
-        args.num_parts,
-        args.part_id,
+        in_dir=args.in_dir,
+        out_dir=args.out_dir,
+        device=args.device,
+        verbose=args.verbose,
+        save_probabilities=args.save_probabilities,
+        continue_prediction=args.continue_prediction,
+        disable_progress_bar=args.disable_progress_bar,
+        clear_cache=args.clear_cache,
+        disable_tta=args.disable_tta,
+        d=args.d,
+        p=args.p,
+        tr=args.tr,
+        c=args.c,
+        f=[args.f],
+        step_size=args.step_size,
+        chk=args.chk,
+        npp=args.npp,
+        nps=args.nps,
+        prev_stage_predictions=args.prev_stage_predictions,
+        num_parts=args.num_parts,
+        part_id=args.part_id,
         low_memory=args.low_memory,
+        qc=args.qc,
+        qc_thresholds=args.qc_thresholds,
     )
 
 
