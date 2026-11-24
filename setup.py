@@ -9,7 +9,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name="DLMUSE",
-    version="1.0.3",
+    version="1.1.0",
     description="DLMUSE - Deep Learning MUlti-atlas region Segmentation utilizing Ensembles of registration algorithms and parameters",
     long_description=long_description,
     long_description_content_type="text/markdown",
